@@ -6,8 +6,10 @@
   "author": "anchal rajput",
   "type": "module",
   "main": "index.js",
-
   "scripts": {
     "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "prettier": "^3.8.1"
   }
 }
