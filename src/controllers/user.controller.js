@@ -1,0 +1,59 @@
+import  { asyncHandler } from "../utils/asyncHandler.js";
+import {ApiError} from "../utils/ApiError.js";
+import { User } from "../models/user.model.js";
+import {uploadOnCloudinary} from "../utils/cloudinary.js";
+import {ApiResponse} from "../utils/ApiResponse.js";
+
+const registerUser = asyncHandler(async(req, res) => {
+    //1. get user details
+    const{userName, email, fullName, password} = req.body;
+
+    //2. validation- entry cannot be empty
+    if(
+        [userName, fullName, email, password].some((field) => field?.trim() === "")
+    ){
+        throw new ApiError(400,"All fields are required!!");
+    }
+
+    //3. check if user already exists or not with same email or userName
+    const existedUser = await User.findOne({
+        $or : [{userName}, {email}]
+    })
+
+    if(existedUser) throw new ApiError(409,"User will same userName or email already exists!!");
+
+    //4. check for image
+    const avatarLocalPath = req.files?.avatar[0]?.path;
+    const covreImageLocalPath = req.files?.coverImage[0]?.path;
+
+    if(!avatarLocalPath) throw new ApiError(400,"Avatar is required!!");
+
+    //5.Upload on cloudinary
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    const coverImage = await uploadOnCloudinary(covreImageLocalPath);
+
+    if(!avatar) throw new ApiError(400,"Avatar is required!!");
+
+    //6. create user obj
+    const user = await User.create({
+        fullName,
+        avatar: avatar.url,
+        coverImage: coverImage?.url || "",
+        email,
+        password,
+        userName: userName.toLowerCase()
+    })
+
+    //7. removing password and refresh token from response
+    const createdUser = await User.findById(user._id).select("-password -refreshToken")
+
+    //8. check user created in db or not
+    if(!createdUser)    throw new ApiError(500, "Something went WRONG while creating user in DB");
+
+    //9. return response
+    return res.status(201).json(
+        new ApiResponse(200, createdUser, "User registered SUCCESSFULLY!!")
+    );
+})
+
+export {registerUser}

@@ -21,4 +21,8 @@ app.use(express.static("public"))   //assits from local storage
 
 app.use(cookieParser())
 
+import userRouter from "./routes/user.router.js";
+
+app.use("/api/v1/users", userRouter);
+
 export { app }
