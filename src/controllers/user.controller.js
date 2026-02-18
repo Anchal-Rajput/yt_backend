@@ -8,6 +8,10 @@ const registerUser = asyncHandler(async(req, res) => {
     //1. get user details
     const{userName, email, fullName, password} = req.body;
 
+    // console.log("FILES ", req.files);
+    // console.log("BODY ", req.body);
+
+
     //2. validation- entry cannot be empty
     if(
         [userName, fullName, email, password].some((field) => field?.trim() === "")
@@ -23,16 +27,24 @@ const registerUser = asyncHandler(async(req, res) => {
     if(existedUser) throw new ApiError(409,"User will same userName or email already exists!!");
 
     //4. check for image
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const covreImageLocalPath = req.files?.coverImage[0]?.path;
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+
+    // const avatarLocalPath = req.files?.avatar[0]?.path;
+    // const covreImageLocalPath = req.files?.coverImage[0]?.path;
 
     if(!avatarLocalPath) throw new ApiError(400,"Avatar is required!!");
 
     //5.Upload on cloudinary
     const avatar = await uploadOnCloudinary(avatarLocalPath);
-    const coverImage = await uploadOnCloudinary(covreImageLocalPath);
+    console.log("AVATAR RESPONSE ", avatar);
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-    if(!avatar) throw new ApiError(400,"Avatar is required!!");
+    //if(!avatar) throw new ApiError(400,"Avatar is required!!");
+    if (!req.files || !req.files.avatar || req.files.avatar.length === 0) {
+        throw new ApiError(400, "Avatar is required!!");
+    }
+
 
     //6. create user obj
     const user = await User.create({

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { use } from "react";
+
 
 const userSchema = new mongoose.Schema({
     userName: {
@@ -47,12 +47,18 @@ const userSchema = new mongoose.Schema({
 
 
 //bcrypting password before save
-userSchema.pre("save", async function(next){
-    if(!this.isModified("password"))    return next();
+// userSchema.pre("save", async function(next){
+//     if(!this.isModified("password"))    return next();
+
+//     this.password = await bcrypt.hash(this.password, 10);
+//     next();
+// })
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
 
     this.password = await bcrypt.hash(this.password, 10);
-    next();
-})
+});
+
 
 //comparing password with save password in db
 userSchema.methods.isPasswordCorrect = async function (password) {

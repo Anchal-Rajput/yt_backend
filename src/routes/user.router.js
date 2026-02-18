@@ -5,13 +5,13 @@ import { upload } from "../middlewares/multer.middleware.js";
 const router = Router();
 
 router.route("/register").post(
-    upload.field([
+    upload.fields([
         {
-            name: avatar,
+            name: "avatar",
             maxCount: 1
         },
         {
-            name: coverImage,
+            name: "coverImage",
             maxCount: 1
         }
     ])
